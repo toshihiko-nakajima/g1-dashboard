@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025年 JRA G1 1番人気分析ダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --turf:#1b4d3e;
+  --turf-deep:#0e2f26;
+  --dirt:#a8722e;
+  --paper:#f7f5f0;
+  --card:#ffffff;
+  --ink:#1f2421;
+  --ink-2:#5b635e;
+  --ink-3:#8b938e;
+  --line:#e3e0d8;
+  --win:#1d9e75;
+  --win-bg:#e1f5ee;
+  --place:#ba7517;
+  --place-bg:#faeeda;
+  --lose-bg:#f1efe8;
+  --bar-win:#1b4d3e;
+  --bar-place:#4faa8b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.7;
+  font-feature-settings:"tnum";
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px 64px;}
+
+header{
+  background:var(--turf-deep);
+  color:#f2efe6;
+  border-bottom:6px solid var(--dirt);
+  margin-bottom:32px;
+}
+.head-inner{max-width:960px;margin:0 auto;padding:36px 20px 30px;}
+.eyebrow{font-size:12px;letter-spacing:.18em;color:#b9cfc5;margin-bottom:8px;}
+h1{
+  font-family:'Shippori Mincho',serif;
+  font-weight:800;
+  font-size:clamp(24px,4vw,34px);
+  line-height:1.35;
+}
+h1 .accent{color:#e8c880;}
+.head-sub{font-size:13px;color:#b9cfc5;margin-top:10px;}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px;
+  margin:-4px 0 36px;
+}
+.kpi{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:16px 18px;
+}
+.kpi .label{font-size:12px;color:var(--ink-2);letter-spacing:.06em;}
+.kpi .value{
+  font-family:'Shippori Mincho',serif;
+  font-weight:800;
+  font-size:34px;
+  line-height:1.2;
+  margin-top:2px;
+}
+.kpi .value small{font-size:14px;font-weight:600;color:var(--ink-2);margin-left:2px;}
+.kpi.hero .value{color:var(--turf);}
+.kpi .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px;}
+
+h2{
+  font-family:'Shippori Mincho',serif;
+  font-weight:800;
+  font-size:19px;
+  margin:0 0 4px;
+}
+.section-lead{font-size:13px;color:var(--ink-2);margin-bottom:16px;}
+
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.tabs button{
+  font-family:inherit;
+  font-size:13px;
+  padding:7px 16px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--card);
+  color:var(--ink-2);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.tabs button:hover{border-color:var(--turf);color:var(--turf);}
+.tabs button:focus-visible{outline:2px solid var(--turf);outline-offset:2px;}
+.tabs button.active{
+  background:var(--turf);
+  border-color:var(--turf);
+  color:#fff;
+  font-weight:500;
+}
+
+.legend{display:flex;gap:18px;font-size:12px;color:var(--ink-2);margin-bottom:14px;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+.chart-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:22px 24px 18px;
+  margin-bottom:14px;
+}
+.row{display:grid;grid-template-columns:190px 1fr;gap:12px;align-items:center;padding:9px 0;}
+.row + .row{border-top:1px dashed var(--line);}
+.row .cat{font-size:13.5px;font-weight:500;}
+.row .cat small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3);}
+.bars{display:flex;flex-direction:column;gap:5px;}
+.bar-track{position:relative;height:16px;background:var(--lose-bg);border-radius:4px;overflow:hidden;}
+.bar-fill{
+  position:absolute;left:0;top:0;bottom:0;
+  border-radius:4px;
+  transition:width .5s cubic-bezier(.2,.7,.3,1);
+}
+.bar-fill.win{background:var(--bar-win);}
+.bar-fill.place{background:var(--bar-place);}
+.bar-num{
+  position:absolute;right:8px;top:0;
+  font-size:11px;line-height:16px;color:var(--ink-2);
+}
+.insight{
+  border-left:3px solid var(--dirt);
+  background:var(--card);
+  border-radius:0 10px 10px 0;
+  padding:12px 16px;
+  font-size:13.5px;
+  color:var(--ink-2);
+  margin-bottom:40px;
+}
+.insight b{color:var(--ink);font-weight:700;}
+
+.table-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+select{
+  font-family:inherit;font-size:13px;
+  padding:6px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);color:var(--ink);
+}
+.table-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow-x:auto;
+}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px;}
+thead th{
+  text-align:left;
+  font-size:11.5px;
+  font-weight:500;
+  color:var(--ink-3);
+  letter-spacing:.05em;
+  padding:12px 10px 8px;
+  border-bottom:1px solid var(--line);
+  white-space:nowrap;
+  background:#fbfaf7;
+}
+tbody td{padding:9px 10px;border-bottom:1px solid #efede6;white-space:nowrap;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.is-win{background:var(--win-bg);}
+tbody tr:hover{background:#f4f7f5;}
+tr.is-win:hover{background:#d5efe4;}
+.pos-badge{
+  display:inline-block;
+  min-width:44px;
+  text-align:center;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:11.5px;
+  font-weight:700;
+}
+.pos-1{background:var(--win);color:#fff;}
+.pos-23{background:var(--place-bg);color:var(--place);}
+.pos-x{background:var(--lose-bg);color:var(--ink-2);}
+.muted{color:var(--ink-2);}
+.flag{color:var(--dirt);}
+
+.notes{margin-top:26px;font-size:12.5px;color:var(--ink-2);}
+.notes li{margin:4px 0 4px 1.2em;}
+footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3);}
+
+@media (max-width:640px){
+  .row{grid-template-columns:1fr;gap:6px;}
+  .row .cat small{display:inline;margin-left:6px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .bar-fill{transition:none;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="eyebrow">JRA GRADE 1 &nbsp;|&nbsp; 2025 SEASON REVIEW</div>
+    <h1>2025年 G1レース <span class="accent">1番人気</span>はいつ信じられたか</h1>
+    <div class="head-sub">全26レース（平地24＋障害2）× 六曜・天候・馬場・競馬場・距離・月のクロス集計</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="label">対象レース</div>
+      <div class="value">26<small>戦</small></div>
+      <div class="sub">JRA・G1（地方交流は除く）</div>
+    </div>
+    <div class="kpi hero">
+      <div class="label">1番人気の勝率</div>
+      <div class="value">30.8<small>%</small></div>
+      <div class="sub">8勝 / 26戦</div>
+    </div>
+    <div class="kpi">
+      <div class="label">連対率（2着以内）</div>
+      <div class="value">46.2<small>%</small></div>
+      <div class="sub">12回 / 26戦</div>
+    </div>
+    <div class="kpi">
+      <div class="label">複勝率（3着以内）</div>
+      <div class="value">57.7<small>%</small></div>
+      <div class="sub">15回 / 26戦</div>
+    </div>
+  </div>
+
+  <h2>切り口別の勝率・複勝率</h2>
+  <p class="section-lead">タブを切り替えると、集計軸が変わります。バーにカーソルを乗せると内訳が表示されます。</p>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button data-axis="rokuyo" class="active">六曜</button>
+    <button data-axis="baba">馬場</button>
+    <button data-axis="weather">天候</button>
+    <button data-axis="place">競馬場</button>
+    <button data-axis="dist">距離帯</button>
+    <button data-axis="month">月別</button>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--bar-win)"></i>勝率</span>
+    <span><i style="background:var(--bar-place)"></i>複勝率（3着以内）</span>
+  </div>
+
+  <div class="chart-card" id="chart" aria-live="polite"></div>
+  <div class="insight" id="insight"></div>
+
+  <h2>全26レースの明細</h2>
+  <div class="table-head">
+    <p class="section-lead" style="margin:0;">緑の行は1番人気が勝利したレースです。</p>
+    <select id="filter" aria-label="表示するレースの絞り込み">
+      <option value="all">すべて表示（26戦）</option>
+      <option value="win">1番人気が勝ったレース（8戦）</option>
+      <option value="lose">1番人気が敗れたレース（18戦）</option>
+    </select>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>日付</th><th>レース</th><th>場</th><th>コース</th>
+          <th>天候/馬場</th><th>六曜</th><th>1番人気</th><th>着順</th><th>勝ち馬（人気）</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <ul class="notes">
+    <li>六曜は旧暦（太陰太陽暦）から算出した正確な値です。</li>
+    <li>天候・馬場のうち<span class="flag">※</span>印のレースは、JRA公式記録と未照合の参考値です（照合済み：フェブラリーS、高松宮記念、桜花賞、NHKマイルC、オークス、安田記念、宝塚記念、スプリンターズS、秋華賞ほか）。</li>
+    <li>n=26 の極小サンプルのため、各カテゴリの差はほぼ偶然の範囲であり、統計的な有意性はありません。傾向の「観察」用としてご覧ください。</li>
+  </ul>
+
+  <footer>
+    データ出典：JRA・netkeiba ほか各競馬メディアのレース結果（2025年）｜作成：2026年7月
+  </footer>
+</div>
+
+<script>
+const RACES=[
+{d:'2/23',race:'フェブラリーS',pl:'東京',s:'ダ',dist:1600,rk:'友引',w:'晴',b:'良',vf:1,fav:'ミッキーファイト',pos:3,win:'コスタノヴァ',wp:2},
+{d:'3/30',race:'高松宮記念',pl:'中京',s:'芝',dist:1200,rk:'仏滅',w:'晴',b:'良',vf:1,fav:'ナムラクレア',pos:2,win:'サトノレーヴ',wp:2},
+{d:'4/6',race:'大阪杯',pl:'阪神',s:'芝',dist:2000,rk:'大安',w:'晴',b:'良',vf:0,fav:'シックスペンス',pos:7,win:'ベラジオオペラ',wp:2},
+{d:'4/13',race:'桜花賞',pl:'阪神',s:'芝',dist:1600,rk:'赤口',w:'曇',b:'稍重',vf:1,fav:'エリカエクスプレス',pos:5,win:'エンブロイダリー',wp:3},
+{d:'4/19',race:'中山グランドJ',pl:'中山',s:'障',dist:4260,rk:'赤口',w:'晴',b:'良',vf:0,fav:'マイネルグロン',pos:5,win:'エコロデュエル',wp:5},
+{d:'4/20',race:'皐月賞',pl:'中山',s:'芝',dist:2000,rk:'先勝',w:'晴',b:'良',vf:0,fav:'クロワデュノール',pos:2,win:'ミュージアムマイル',wp:3},
+{d:'5/4',race:'天皇賞（春）',pl:'京都',s:'芝',dist:3200,rk:'仏滅',w:'晴',b:'良',vf:0,fav:'ヘデントール',pos:1,win:'ヘデントール',wp:1},
+{d:'5/11',race:'NHKマイルC',pl:'東京',s:'芝',dist:1600,rk:'大安',w:'晴',b:'良',vf:1,fav:'アドマイヤズーム',pos:14,win:'パンジャタワー',wp:9},
+{d:'5/18',race:'ヴィクトリアM',pl:'東京',s:'芝',dist:1600,rk:'赤口',w:'晴',b:'良',vf:0,fav:'アスコリピチェーノ',pos:1,win:'アスコリピチェーノ',wp:1},
+{d:'5/25',race:'オークス',pl:'東京',s:'芝',dist:2400,rk:'先勝',w:'曇',b:'良',vf:1,fav:'エンブロイダリー',pos:9,win:'カムニャック',wp:4},
+{d:'6/1',race:'日本ダービー',pl:'東京',s:'芝',dist:2400,rk:'仏滅',w:'晴',b:'良',vf:0,fav:'クロワデュノール',pos:1,win:'クロワデュノール',wp:1},
+{d:'6/8',race:'安田記念',pl:'東京',s:'芝',dist:1600,rk:'大安',w:'曇',b:'良',vf:1,fav:'ソウルラッシュ',pos:3,win:'ジャンタルマンタル',wp:2},
+{d:'6/15',race:'宝塚記念',pl:'阪神',s:'芝',dist:2200,rk:'赤口',w:'晴',b:'稍重',vf:1,fav:'ベラジオオペラ',pos:2,win:'メイショウタバル',wp:7},
+{d:'9/28',race:'スプリンターズS',pl:'中山',s:'芝',dist:1200,rk:'友引',w:'晴',b:'良',vf:1,fav:'サトノレーヴ',pos:4,win:'ウインカーネリアン',wp:11},
+{d:'10/19',race:'秋華賞',pl:'京都',s:'芝',dist:2000,rk:'大安',w:'曇',b:'良',vf:1,fav:'カムニャック',pos:16,win:'エンブロイダリー',wp:2},
+{d:'10/26',race:'菊花賞',pl:'京都',s:'芝',dist:3000,rk:'友引',w:'晴',b:'良',vf:0,fav:'エネルジコ',pos:1,win:'エネルジコ',wp:1},
+{d:'11/2',race:'天皇賞（秋）',pl:'東京',s:'芝',dist:2000,rk:'先負',w:'晴',b:'良',vf:0,fav:'マスカレードボール',pos:1,win:'マスカレードボール',wp:1},
+{d:'11/16',race:'エリザベス女王杯',pl:'京都',s:'芝',dist:2200,rk:'大安',w:'晴',b:'良',vf:0,fav:'レガレイラ',pos:1,win:'レガレイラ',wp:1},
+{d:'11/23',race:'マイルCS',pl:'京都',s:'芝',dist:1600,rk:'先勝',w:'晴',b:'良',vf:0,fav:'ジャンタルマンタル',pos:1,win:'ジャンタルマンタル',wp:1},
+{d:'11/30',race:'ジャパンカップ',pl:'東京',s:'芝',dist:2400,rk:'友引',w:'晴',b:'良',vf:0,fav:'マスカレードボール',pos:2,win:'カランダガン',wp:4},
+{d:'12/7',race:'チャンピオンズC',pl:'中京',s:'ダ',dist:1800,rk:'先負',w:'晴',b:'良',vf:0,fav:'ナルカミ',pos:13,win:'ダブルハートボンド',wp:3},
+{d:'12/14',race:'阪神JF',pl:'阪神',s:'芝',dist:1600,rk:'仏滅',w:'晴',b:'良',vf:0,fav:'アランカール',pos:5,win:'スターアニス',wp:2},
+{d:'12/21',race:'朝日杯FS',pl:'阪神',s:'芝',dist:1600,rk:'赤口',w:'晴',b:'良',vf:0,fav:'アドマイヤクワッズ',pos:3,win:'カヴァレリッツォ',wp:2},
+{d:'12/27',race:'中山大障害',pl:'中山',s:'障',dist:4100,rk:'赤口',w:'晴',b:'良',vf:0,fav:'エコロデュエル',pos:1,win:'エコロデュエル',wp:1},
+{d:'12/27',race:'ホープフルS',pl:'中山',s:'芝',dist:2000,rk:'赤口',w:'晴',b:'良',vf:0,fav:'アンドゥーリル',pos:7,win:'ロブチェン',wp:7},
+{d:'12/28',race:'有馬記念',pl:'中山',s:'芝',dist:2500,rk:'先勝',w:'晴',b:'良',vf:0,fav:'レガレイラ',pos:4,win:'ミュージアムマイル',wp:3}
+];
+
+const AXES={
+rokuyo:{order:['先勝','友引','先負','仏滅','大安','赤口'],key:r=>r.rk,
+  insight:'<b>「大安」は5戦1勝（勝率20%）、「仏滅」は4戦2勝（同50%）。</b>縁起の良さと1番人気の信頼度は、2025年に限ればむしろ逆行しました。'},
+baba:{order:['良','稍重'],key:r=>r.b,
+  insight:'2025年に良馬場以外で行われたG1は<b>桜花賞と宝塚記念の2戦のみ</b>。いずれも1番人気は敗れました（宝塚記念は2着）。'},
+weather:{order:['晴','曇'],key:r=>r.w,
+  insight:'<b>1番人気の8勝はすべて晴れの日。</b>曇りの4戦（桜花賞・オークス・安田記念・秋華賞）では未勝利でした。'},
+place:{order:['東京','中山','京都','阪神','中京'],key:r=>r.pl,
+  insight:'<b>京都は5戦4勝（勝率80%）、阪神は5戦0勝。</b>同じ関西圏でも明暗がくっきり分かれた1年でした。'},
+dist:{order:['短距離（1200m）','マイル（1600m）','中距離（1800〜2200m）','長距離（2400m〜）','障害'],
+  key:r=>r.s==='障'?'障害':r.dist<=1400?'短距離（1200m）':r.dist<=1700?'マイル（1600m）':r.dist<=2200?'中距離（1800〜2200m）':'長距離（2400m〜）',
+  insight:'距離が延びるほど1番人気は堅実で、<b>2400m以上は6戦3勝（勝率50%）</b>。スプリント2戦は全敗でした。'},
+month:{order:['2月','3月','4月','5月','6月','9月','10月','11月','12月'],key:r=>r.d.split('/')[0]+'月',
+  insight:'春（2〜6月）は13戦3勝、秋（9〜12月）は13戦5勝。<b>特に11月は4戦3勝</b>と、本命党の稼ぎどきでした。'}
+};
+
+function stats(axis){
+  return AXES[axis].order.map(cat=>{
+    const rows=RACES.filter(r=>AXES[axis].key(r)===cat);
+    const n=rows.length;
+    const wn=rows.filter(r=>r.pos===1).length;
+    const pc=rows.filter(r=>r.pos<=3).length;
+    return {cat,n,wn,pc,winRate:n?wn/n*100:0,placeRate:n?pc/n*100:0};
+  }).filter(s=>s.n>0);
+}
+
+function draw(axis){
+  const chart=document.getElementById('chart');
+  chart.innerHTML='';
+  stats(axis).forEach(s=>{
+    const wr=Math.round(s.winRate*10)/10;
+    const pr=Math.round(s.placeRate*10)/10;
+    const row=document.createElement('div');
+    row.className='row';
+    row.innerHTML=
+      '<div class="cat">'+s.cat+'<small>n='+s.n+'</small></div>'+
+      '<div class="bars">'+
+        '<div class="bar-track" title="勝率 '+wr+'%（'+s.wn+'勝/'+s.n+'戦）">'+
+          '<div class="bar-fill win" style="width:0%"></div>'+
+          '<span class="bar-num">'+wr+'%</span></div>'+
+        '<div class="bar-track" title="複勝率 '+pr+'%（'+s.pc+'回/'+s.n+'戦）">'+
+          '<div class="bar-fill place" style="width:0%"></div>'+
+          '<span class="bar-num">'+pr+'%</span></div>'+
+      '</div>';
+    chart.appendChild(row);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      row.querySelector('.bar-fill.win').style.width=wr+'%';
+      row.querySelector('.bar-fill.place').style.width=pr+'%';
+    }));
+  });
+  document.getElementById('insight').innerHTML=AXES[axis].insight;
+  document.querySelectorAll('#tabs button').forEach(b=>{
+    b.classList.toggle('active',b.dataset.axis===axis);
+  });
+}
+
+function renderTable(mode){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  RACES.filter(r=>mode==='all'||(mode==='win'?r.pos===1:r.pos!==1)).forEach(r=>{
+    const tr=document.createElement('tr');
+    if(r.pos===1)tr.className='is-win';
+    const badge=r.pos===1?'pos-1':(r.pos<=3?'pos-23':'pos-x');
+    tr.innerHTML=
+      '<td class="muted">'+r.d+'</td>'+
+      '<td>'+r.race+'</td>'+
+      '<td class="muted">'+r.pl+'</td>'+
+      '<td class="muted">'+r.s+r.dist+'m</td>'+
+      '<td class="muted">'+r.w+'/'+r.b+(r.vf?'':'<span class="flag">※</span>')+'</td>'+
+      '<td class="muted">'+r.rk+'</td>'+
+      '<td>'+r.fav+'</td>'+
+      '<td><span class="pos-badge '+badge+'">'+r.pos+'着</span></td>'+
+      '<td>'+(r.pos===1?'<span class="muted">（同馬）</span>':r.win+'<span class="muted">（'+r.wp+'人気）</span>')+'</td>';
+    tb.appendChild(tr);
+  });
+}
+
+document.querySelectorAll('#tabs button').forEach(b=>{
+  b.addEventListener('click',()=>draw(b.dataset.axis));
+});
+document.getElementById('filter').addEventListener('change',e=>renderTable(e.target.value));
+
+draw('rokuyo');
+renderTable('all');
+</script>
+</body>
+</html>
